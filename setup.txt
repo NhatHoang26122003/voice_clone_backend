@@ -1,0 +1,26 @@
+python -m venv venv
+venv\Scrit\activate
+pip install fastapi uvicorn
+pip install "pyjwt[crypto]" passlib bcrypt python-multipart
+
+========
+# Tạo các thư mục và file rõ ràng đảm nhiệm từng vai trò khác nhau 
+=> scale sau này
+
+========
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+
+========
+docker-compose up -d
+docker exec -it voice_clone_redis redis-cli FLUSHALL
+
+modal deploy ai_engine/neutts_model.py
+python worker.py
+
+=========
+chạy inference
+
+docker-compose up -d
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+python worker.py

@@ -1,0 +1,24 @@
+# Bỏ qua môi trường ảo Python
+venv/
+env/
+.venv/
+
+# Bỏ qua các file cấu hình chứa mật khẩu nhạy cảm
+.env
+*.env
+core/config.pyc
+
+# Bỏ qua thư mục lưu trữ Audio (Do đã dùng S3 nên Local không cần push)
+storage/voices/*
+storage/generated_audios/*
+!storage/.gitkeep
+
+# Bỏ qua file Database SQLite (Để tránh push data test rác lên Github)
+*.db
+*.sqlite3
+
+# Bỏ qua các file rác của hệ thống / Python
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
