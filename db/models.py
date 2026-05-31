@@ -11,18 +11,38 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+
+# class VoiceProfile(Base):
+#     __tablename__ = "voice_profiles"
+
+#     id = Column(Integer, primary_key=True, index=True)
+#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+#     voice_name = Column(String, index=True, nullable=False)
+#     ref_audio_path = Column(String, nullable=False) # Đường dẫn file vật lý trên ổ cứng
+#     ref_text = Column(String, nullable=False)       # Nội dung text đoạn thu âm
+#     embedding_path = Column(String, nullable=True)  # Đường dẫn file vector đặc trưng (.pt)
+#     status = Column(String, default="processing")   # processing | ready | failed
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     is_system_voice = Column(Boolean, default=False)
+
 class VoiceProfile(Base):
     __tablename__ = "voice_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     voice_name = Column(String, index=True, nullable=False)
-    ref_audio_path = Column(String, nullable=False) # Đường dẫn file vật lý trên ổ cứng
-    ref_text = Column(String, nullable=False)       # Nội dung text đoạn thu âm
-    embedding_path = Column(String, nullable=True)  # Đường dẫn file vector đặc trưng (.pt)
-    status = Column(String, default="processing")   # processing | ready | failed
+    ref_audio_path = Column(String, nullable=False) 
+    ref_text = Column(String, nullable=False)       
+    
+    # 2 CỘT MỚI THÊM VÀO CHO CƠ CHẾ CACHING V2.0
+    ref_codes_path = Column(String, nullable=True)  # Đường dẫn file codes.pt trên S3
+    ref_phones = Column(String, nullable=True)      # Chuỗi âm vị của câu text mẫu
+
+    embedding_path = Column(String, nullable=True)  
+    status = Column(String, default="processing")   # verifying | ready | rejected
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     is_system_voice = Column(Boolean, default=False)
+
 
 class GeneratedAudio(Base):
     __tablename__ = "generated_audios"
