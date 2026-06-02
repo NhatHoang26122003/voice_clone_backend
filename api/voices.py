@@ -256,12 +256,13 @@ def get_generated_audios(
 #     current_user: dict = Depends(get_current_user)
 # ):
 #     try:
-#         print("🔥 Tiếp nhận yêu cầu sinh giọng nói mới từ Flutter")
+#         print("🔥 Tiếp nhận yêu cầu sinh giọng nói mới siêu tốc")
         
 #         user = db.query(models.User).filter(models.User.email == current_user["email"]).first()
 #         if not user:
 #             raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
 
+#         # 1. Kiểm tra quyền sở hữu giọng nói
 #         voice = db.query(models.VoiceProfile).filter(
 #             models.VoiceProfile.id == request.voice_id,
 #             or_(
@@ -271,11 +272,13 @@ def get_generated_audios(
 #         ).first()
         
 #         if not voice:
-#             raise HTTPException(
-#                 status_code=404, 
-#                 detail="Cấu hình giọng nói không tồn tại hoặc không thuộc quyền sở hữu của bạn"
-#             )
+#             raise HTTPException(status_code=404, detail="Cấu hình giọng nói không tồn tại")
+            
+#         # 2. CHẶN NGAY NẾU GIỌNG CHƯA ĐƯỢC XÁC THỰC THÀNH CÔNG
+#         if voice.status != "ready":
+#             raise HTTPException(status_code=400, detail="Giọng mẫu chưa sẵn sàng hoặc đã bị từ chối do không khớp văn bản.")
 
+#         # 3. Lưu log vào DB
 #         db_audio = models.GeneratedAudio(
 #             user_id=user.id,
 #             voice_id=request.voice_id,
@@ -286,24 +289,22 @@ def get_generated_audios(
 #         db.commit()
 #         db.refresh(db_audio)
 
+#         # 4. Đóng gói Task Sinh âm thanh siêu tốc (Chỉ gửi text, codes và phones)
 #         task_payload = {
+#             "task_type": "generate_audio", # <--- DÁN NHÃN LOẠI TASK
 #             "audio_id": db_audio.id,
-#             "user_id": user.id,
-#             "voice_id": voice.id,
 #             "text": request.text,               
-#             "ref_audio_path": voice.ref_audio_path, 
-#             "ref_text": voice.ref_text          
+#             "ref_codes_path": voice.ref_codes_path, # S3 Key chứa file codes.pt
+#             "ref_phones": voice.ref_phones          # Chuỗi âm vị đã lưu sẵn
 #         }
         
 #         if redis_client:
 #             redis_client.rpush("voice_clone_tasks", json.dumps(task_payload))
-#             print(f"🚀 Đã đẩy mã đơn hàng {db_audio.id} vào hàng đợi Redis 'voice_clone_tasks'")
-#         else:
-#             print("⚠️ Cảnh báo: Redis chưa được bật, đơn hàng chỉ mới lưu tạm ở DB")
+#             print(f"🚀 Đã đẩy task GENERATE AUDIO siêu tốc cho Audio ID: {db_audio.id}")
 
 #         return {
 #             "status": 200,
-#             "message": "Đã tiếp nhận yêu cầu, hệ thống đang xử lý ngầm",
+#             "message": "Đã tiếp nhận yêu cầu sinh giọng siêu tốc",
 #             "data": {
 #                 "audio_id": db_audio.id,
 #                 "status": db_audio.status
@@ -314,8 +315,8 @@ def get_generated_audios(
 #         raise he
 #     except Exception as e:
 #         print("🔥 API GENERATE ERROR:", e)
-#         raise HTTPException(status_code=500, detail=f"Lỗi hệ thống nội bộ: {str(e)}")
-    
+#         raise HTTPException(status_code=500, detail=f"Lỗi hệ thống: {str(e)}")
+
 @router.post("/generate")
 def generate_cloned_audio(
     request: GenerateAudioRequest,
@@ -329,7 +330,22 @@ def generate_cloned_audio(
         if not user:
             raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
 
-        # 1. Kiểm tra quyền sở hữu giọng nói
+        # ==========================================
+        # BƯỚC 1: LOGIC KIỂM TRA VÀ TRỪ TOKEN (KÝ TỰ)
+        # ==========================================
+        text_length = len(request.text.strip())
+        
+        if user.token_balance < text_length:
+            raise HTTPException(
+                status_code=402,
+                detail=f"Số dư không đủ! Cần {text_length} ký tự, nhưng bạn chỉ còn {user.token_balance} ký tự."
+            )
+            
+        user.token_balance -= text_length
+
+        # ==========================================
+        # BƯỚC 2: KIỂM TRA QUYỀN VÀ TRẠNG THÁI GIỌNG
+        # ==========================================
         voice = db.query(models.VoiceProfile).filter(
             models.VoiceProfile.id == request.voice_id,
             or_(
@@ -339,13 +355,16 @@ def generate_cloned_audio(
         ).first()
         
         if not voice:
+            user.token_balance += text_length
             raise HTTPException(status_code=404, detail="Cấu hình giọng nói không tồn tại")
             
-        # 2. CHẶN NGAY NẾU GIỌNG CHƯA ĐƯỢC XÁC THỰC THÀNH CÔNG
         if voice.status != "ready":
+            user.token_balance += text_length
             raise HTTPException(status_code=400, detail="Giọng mẫu chưa sẵn sàng hoặc đã bị từ chối do không khớp văn bản.")
 
-        # 3. Lưu log vào DB
+        # ==========================================
+        # BƯỚC 3: LƯU DATABASE VÀ ĐẨY VÀO REDIS
+        # ==========================================
         db_audio = models.GeneratedAudio(
             user_id=user.id,
             voice_id=request.voice_id,
@@ -356,25 +375,26 @@ def generate_cloned_audio(
         db.commit()
         db.refresh(db_audio)
 
-        # 4. Đóng gói Task Sinh âm thanh siêu tốc (Chỉ gửi text, codes và phones)
         task_payload = {
-            "task_type": "generate_audio", # <--- DÁN NHÃN LOẠI TASK
+            "task_type": "generate_audio", 
             "audio_id": db_audio.id,
             "text": request.text,               
-            "ref_codes_path": voice.ref_codes_path, # S3 Key chứa file codes.pt
-            "ref_phones": voice.ref_phones          # Chuỗi âm vị đã lưu sẵn
+            "ref_codes_path": voice.ref_codes_path, 
+            "ref_phones": voice.ref_phones          
         }
         
         if redis_client:
             redis_client.rpush("voice_clone_tasks", json.dumps(task_payload))
-            print(f"🚀 Đã đẩy task GENERATE AUDIO siêu tốc cho Audio ID: {db_audio.id}")
+            print(f"🚀 Đã đẩy task GENERATE AUDIO cho Audio ID: {db_audio.id}")
+            print(f"💰 User {user.username} đã bị trừ {text_length} ký tự. Số dư mới: {user.token_balance}")
 
         return {
             "status": 200,
             "message": "Đã tiếp nhận yêu cầu sinh giọng siêu tốc",
             "data": {
                 "audio_id": db_audio.id,
-                "status": db_audio.status
+                "status": db_audio.status,
+                "remaining_tokens": user.token_balance
             }
         }
 

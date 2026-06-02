@@ -7,7 +7,7 @@ cursor = conn.cursor()
 try:
     # Chạy lệnh SQL thuần để thêm cột is_system_voice, mặc định là 0 (False)
     # cursor.execute("ALTER TABLE voice_profiles ADD COLUMN is_system_voice BOOLEAN DEFAULT 0;")
-    cursor.execute("DELETE FROM generated_audios WHERE status = 'failed';")
+    cursor.execute("DELETE FROM generated_audios WHERE created_at < '2026-06-02';")
     conn.commit()
     print("✅ Đã xóa thành công!")
 except Exception as e:

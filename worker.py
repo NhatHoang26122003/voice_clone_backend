@@ -121,7 +121,7 @@ def process_voice_clone(task_data):
                 print(f" ├─ ❌ Giọng đọc sai kịch bản. Đang xóa rác trên Storage...")
                 s3_client.delete_object(Bucket=settings.AWS_BUCKET_NAME, Key=ref_audio_key)
                 db_voice.status = "rejected"
-                db_voice.ref_audio_path = None 
+                db_voice.ref_audio_path = "" 
                 
             elif result["status"] == "ready":
                 print(f" ├─ ✅ Xác thực thành công. Đang lưu Codes lên Storage...")

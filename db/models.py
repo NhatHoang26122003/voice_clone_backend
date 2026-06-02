@@ -9,21 +9,8 @@ class User(Base):
     username = Column(String, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
+    token_balance = Column(Integer, default=500)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-
-# class VoiceProfile(Base):
-#     __tablename__ = "voice_profiles"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-#     voice_name = Column(String, index=True, nullable=False)
-#     ref_audio_path = Column(String, nullable=False) # Đường dẫn file vật lý trên ổ cứng
-#     ref_text = Column(String, nullable=False)       # Nội dung text đoạn thu âm
-#     embedding_path = Column(String, nullable=True)  # Đường dẫn file vector đặc trưng (.pt)
-#     status = Column(String, default="processing")   # processing | ready | failed
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-#     is_system_voice = Column(Boolean, default=False)
 
 class VoiceProfile(Base):
     __tablename__ = "voice_profiles"
