@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from api import auth, voices
+from api import auth, voices, payments
 from db.database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -12,6 +12,7 @@ app = FastAPI(title="Voice clone App")
 app.mount("/storage", StaticFiles(directory="storage"), name="storage")
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(voices.router, prefix="/api/voices", tags=["Voice Profiles"])
+app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
 
 @app.exception_handler(StarletteHTTPException)
 async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
