@@ -20,6 +20,7 @@ class Settings:
     AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME", "vietnamese-voice-clone")
     # Endpoint URL rất quan trọng. Khi chạy local nó trỏ về localhost:9000, khi lên AWS S3 thật thì phải xóa trống.
     AWS_ENDPOINT_URL = os.getenv("AWS_ENDPOINT_URL", "http://localhost:9000") 
+    CLIENT_MINIO_URL = os.getenv("CLIENT_MINIO_URL", "http://e1.chiasegpu.vn:21163")
     
     # 4. Modal AI
     MODAL_TOKEN_ID = os.getenv("MODAL_TOKEN_ID")

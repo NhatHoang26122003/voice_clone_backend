@@ -23,6 +23,9 @@ chạy inference
 
 docker-compose up -d
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+sudo /home/ubuntu/server/voice_clone_backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port 80
 python worker.py
 
 =====

@@ -9,7 +9,7 @@ from db.database import engine, Base
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Voice clone App")
 
-app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+# app.mount("/storage", StaticFiles(directory="storage"), name="storage")
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(voices.router, prefix="/api/voices", tags=["Voice Profiles"])
 app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])

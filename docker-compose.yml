@@ -12,10 +12,41 @@ services:
     image: minio/minio
     container_name: voice_clone_s3_local
     ports:
-      - "9000:9000"       # Port cho Backend và App Mobile gọi tới
-      - "9001:9001"       # Port cho giao diện Web Console để em quản lý file
+      - "9000:9000"       
+      - "9001:9001"       
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadminpassword
+      MINIO_REGION_NAME: ap-southeast-1
     command: server /data --console-address ":9001"
     restart: unless-stopped
+
+  backend:
+    build: . 
+    container_name: voice_clone_backend
+    ports:
+      - "8000:8000"  # Mở cổng 8000 của container ra máy chủ để khớp với cổng Expose 16186
+    env_file:
+      - .env 
+    volumes:
+      - .:/home/ubuntu/server/voice_clone_backend
+      - static_volume:/home/ubuntu/server/voice_clone_backend/storage
+    depends_on:
+      - redis
+      - minio
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: voice_clone_worker
+    command: python worker.py
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - minio
+    volumes:
+      - .:/home/ubuntu/server/voice_clone_backend
+    environment:
+      - PYTHONUNBUFFERED=1
+volumes:
+  static_volume:

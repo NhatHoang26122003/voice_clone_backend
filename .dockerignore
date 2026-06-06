@@ -1,0 +1,31 @@
+# Loại trừ môi trường ảo ngoài máy thật (QUAN TRỌNG NHẤT)
+venv/
+.venv/
+env/
+
+# Loại trừ file database để tránh ghi đè dữ liệu cũ
+*.db
+*.sqlite3
+
+# Loại trừ thư mục lưu trữ file tĩnh/âm thanh đầu ra đầu vào
+storage/
+data/
+datasets/
+
+# Loại trừ cấu hình Git và VS Code
+.git
+.gitignore
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# Loại bỏ file thực thi của Windows không dùng trên Linux
+*.exe
+stripe.exe
+
+# Loại bỏ các file kịch bản setup cũ nếu không cần thiết
+setup.txt
+backup_scripts.txt
