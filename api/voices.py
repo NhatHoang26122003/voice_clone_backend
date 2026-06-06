@@ -117,7 +117,7 @@ def confirm_upload(
         voice_name=request.voice_name,
         ref_audio_path=request.file_key, 
         ref_text=request.ref_text,
-        status="verifying" # <--- SỬA CHỖ NÀY
+        status="verifying" 
     )
     db.add(db_voice)
     db.commit()
