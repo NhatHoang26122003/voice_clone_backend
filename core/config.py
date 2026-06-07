@@ -34,5 +34,9 @@ class Settings:
     # 6. Stripe
     STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
     STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    # 7. Server Domain
+    SERVER_DOMAIN = os.getenv("SERVER_DOMAIN")
+    
 # Khởi tạo một đối tượng duy nhất để import ở các file khác
 settings = Settings()

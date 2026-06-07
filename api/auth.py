@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
 import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
+from datetime import datetime, timedelta
 
 # Import db và models
 from db.database import get_db
@@ -79,18 +80,25 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @router.get("/me")
 def get_current_user_info(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """API cho Mobile gọi để lấy số dư Token và Hạng tài khoản"""
     user = db.query(models.User).filter(models.User.email == current_user["email"]).first()
     if not user:
         raise HTTPException(status_code=404, detail="User không tồn tại")
+        
+    if user.account_type == 'pro' and user.pro_expires_at:
+        if datetime.utcnow() > user.pro_expires_at:
+            user.account_type = 'basic' 
+            db.commit()
+            
+    expires_str = user.pro_expires_at.strftime("%d/%m/%Y") if user.pro_expires_at else None
         
     return {
         "status": 200,
         "data": {
             "id": user.id,
-            "name": user.username,
+            "username": user.username,
             "email": user.email,
             "token_balance": user.token_balance,
-            "account_type": getattr(user, 'account_type', 'basic') 
+            "account_type": user.account_type,
+            "pro_expires_at": expires_str
         }
     }

@@ -12,6 +12,7 @@ class User(Base):
     token_balance = Column(Integer, default=500)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     account_type = Column(String(50), default='basic') # basic/pro
+    pro_expires_at = Column(DateTime, nullable=True)
 
 class VoiceProfile(Base):
     __tablename__ = "voice_profiles"
