@@ -40,57 +40,6 @@ except Exception as e:
     print("❌ Lỗi kết nối Redis:", e)
     exit(1)
 
-# def process_voice_clone(task_data):
-#     audio_id = task_data.get("audio_id")
-#     text = task_data.get("text")
-#     ref_audio_key = task_data.get("ref_audio_path") # Lúc này là key trên S3
-#     ref_text = task_data.get("ref_text")
-
-#     print(f"\n[🔄] Đang xử lý Audio ID: {audio_id}")
-#     db = SessionLocal()
-#     try:
-#         # 1. Tải file âm thanh từ S3 vào RAM (dạng Bytes)
-#         print(" ├─ Đang tải Audio từ Storage...")
-#         s3_response = s3_client.get_object(Bucket=settings.AWS_BUCKET_NAME, Key=ref_audio_key)
-#         ref_audio_bytes = s3_response['Body'].read()
-            
-#         # 2. Gọi AI Modal xử lý
-#         print(" ├─ Gửi dữ liệu lên GPU Modal...")
-#         RemoteEngine = modal.Cls.from_name("vietnamese-voice-clone", "VietnameseVoiceCloneEngine")
-#         ai_engine = RemoteEngine()
-#         output_bytes = ai_engine.process.remote(
-#             text=text, 
-#             ref_audio_bytes=ref_audio_bytes, 
-#             ref_text=ref_text
-#         )
-        
-#         # 3. Đẩy file kết quả (Bytes) lên thẳng S3
-#         print(" ├─ Đang lưu kết quả lên Storage...")
-#         output_key = f"generated_audios/{audio_id}/ai_output.wav"
-#         s3_client.put_object(
-#             Bucket=settings.AWS_BUCKET_NAME,
-#             Key=output_key,
-#             Body=output_bytes,
-#             ContentType='audio/wav'
-#         )
-            
-#         # 4. Cập nhật DB
-#         db_audio = db.query(models.GeneratedAudio).filter(models.GeneratedAudio.id == audio_id).first()
-#         if db_audio:
-#             db_audio.status = 'ready'
-#             db_audio.audio_path = output_key  # Lưu S3 Key vào Database
-#             db.commit()
-#             print(f" └─ ✅ Xong! Đã cập nhật trạng thái.")
-
-#     except Exception as e:
-#         print(f"❌ Lỗi khi chạy AI: {e}")
-#         db.rollback()
-#         db_audio = db.query(models.GeneratedAudio).filter(models.GeneratedAudio.id == audio_id).first()
-#         if db_audio:
-#             db_audio.status = 'failed'
-#             db.commit()
-#     finally:
-#         db.close()
 
 def process_voice_clone(task_data):
     task_type = task_data.get("task_type")

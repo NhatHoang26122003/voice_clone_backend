@@ -52,21 +52,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = create_access_token(data={"sub": user_email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# def get_current_user(token: str = Depends(oauth2_scheme)):
-#     credentials_exception = HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail="Không thể xác thực thông tin đăng nhập",
-#         headers={"WWW-Authenticate": "Bearer"},
-#     )
-#     try:
-#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         email: str = payload.get("sub")
-#         if email is None:
-#             raise credentials_exception
-#         return {"email": email}
-#     except jwt.PyJWTError:
-#         raise credentials_exception
-
 def get_current_user(token: str = Depends(oauth2_scheme)):
 
     try:
@@ -91,3 +76,21 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
     except jwt.InvalidTokenError:
         raise HTTPException(401, "Invalid token")
+
+@router.get("/me")
+def get_current_user_info(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """API cho Mobile gọi để lấy số dư Token và Hạng tài khoản"""
+    user = db.query(models.User).filter(models.User.email == current_user["email"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User không tồn tại")
+        
+    return {
+        "status": 200,
+        "data": {
+            "id": user.id,
+            "name": user.username,
+            "email": user.email,
+            "token_balance": user.token_balance,
+            "account_type": getattr(user, 'account_type', 'basic') 
+        }
+    }

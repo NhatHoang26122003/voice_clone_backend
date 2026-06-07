@@ -267,74 +267,6 @@ def get_generated_audios(
         raise HTTPException(status_code=500, detail=str(e))
     
 
-# @router.post("/generate")
-# def generate_cloned_audio(
-#     request: GenerateAudioRequest,
-#     db: Session = Depends(get_db),
-#     current_user: dict = Depends(get_current_user)
-# ):
-#     try:
-#         print("🔥 Tiếp nhận yêu cầu sinh giọng nói mới siêu tốc")
-        
-#         user = db.query(models.User).filter(models.User.email == current_user["email"]).first()
-#         if not user:
-#             raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
-
-#         # 1. Kiểm tra quyền sở hữu giọng nói
-#         voice = db.query(models.VoiceProfile).filter(
-#             models.VoiceProfile.id == request.voice_id,
-#             or_(
-#                 models.VoiceProfile.user_id == user.id,
-#                 models.VoiceProfile.is_system_voice == True
-#             )
-#         ).first()
-        
-#         if not voice:
-#             raise HTTPException(status_code=404, detail="Cấu hình giọng nói không tồn tại")
-            
-#         # 2. CHẶN NGAY NẾU GIỌNG CHƯA ĐƯỢC XÁC THỰC THÀNH CÔNG
-#         if voice.status != "ready":
-#             raise HTTPException(status_code=400, detail="Giọng mẫu chưa sẵn sàng hoặc đã bị từ chối do không khớp văn bản.")
-
-#         # 3. Lưu log vào DB
-#         db_audio = models.GeneratedAudio(
-#             user_id=user.id,
-#             voice_id=request.voice_id,
-#             text=request.text,
-#             status="queued"
-#         )
-#         db.add(db_audio)
-#         db.commit()
-#         db.refresh(db_audio)
-
-#         # 4. Đóng gói Task Sinh âm thanh siêu tốc (Chỉ gửi text, codes và phones)
-#         task_payload = {
-#             "task_type": "generate_audio", # <--- DÁN NHÃN LOẠI TASK
-#             "audio_id": db_audio.id,
-#             "text": request.text,               
-#             "ref_codes_path": voice.ref_codes_path, # S3 Key chứa file codes.pt
-#             "ref_phones": voice.ref_phones          # Chuỗi âm vị đã lưu sẵn
-#         }
-        
-#         if redis_client:
-#             redis_client.rpush("voice_clone_tasks", json.dumps(task_payload))
-#             print(f"🚀 Đã đẩy task GENERATE AUDIO siêu tốc cho Audio ID: {db_audio.id}")
-
-#         return {
-#             "status": 200,
-#             "message": "Đã tiếp nhận yêu cầu sinh giọng siêu tốc",
-#             "data": {
-#                 "audio_id": db_audio.id,
-#                 "status": db_audio.status
-#             }
-#         }
-
-#     except HTTPException as he:
-#         raise he
-#     except Exception as e:
-#         print("🔥 API GENERATE ERROR:", e)
-#         raise HTTPException(status_code=500, detail=f"Lỗi hệ thống: {str(e)}")
-
 @router.post("/generate")
 def generate_cloned_audio(
     request: GenerateAudioRequest,
@@ -472,7 +404,6 @@ def delete_generated_audio(
         # XÓA FILE TRÊN CLOUD STORAGE (S3/MinIO)
         if audio.audio_path:
             try:
-                # Gọi lệnh xóa Object trên Bucket
                 s3_client.delete_object(
                     Bucket=settings.AWS_BUCKET_NAME, 
                     Key=audio.audio_path

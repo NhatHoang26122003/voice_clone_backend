@@ -11,6 +11,7 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     token_balance = Column(Integer, default=500)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    account_type = Column(String(50), default='basic') # basic/pro
 
 class VoiceProfile(Base):
     __tablename__ = "voice_profiles"
