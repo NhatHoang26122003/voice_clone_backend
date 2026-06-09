@@ -26,3 +26,5 @@ whisper==1.1.10
 uvicorn
 python-multipart
 alembic
+openai==1.14.0
+httpx==0.27.0

@@ -37,6 +37,10 @@ class Settings:
 
     # 7. Server Domain
     SERVER_DOMAIN = os.getenv("SERVER_DOMAIN")
+
+    # 8. OPENAI API KEY
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
     
 # Khởi tạo một đối tượng duy nhất để import ở các file khác
 settings = Settings()
