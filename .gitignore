@@ -22,3 +22,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .DS_Store
+
+# Bỏ qua file .exe
+*.exe
+stripe.exe

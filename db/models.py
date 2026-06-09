@@ -43,3 +43,23 @@ class GeneratedAudio(Base):
     audio_path = Column(String, nullable=True)      # Đường dẫn file kết quả sau inference
     status = Column(String, default="queued")       # queued | processing | done | failed
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# THÊM VÀO CUỐI FILE models.py
+
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False, default="Đoạn chat mới")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False)
+    is_user = Column(Boolean, nullable=False) # True = User hỏi, False = AI trả lời
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
